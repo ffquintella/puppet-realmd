@@ -1,6 +1,6 @@
 {
   "name": "ffquintella-realmd",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "author": "ffquintella",
   "summary": "Realmd support for RHEL/Debian",
   "license": "MIT",

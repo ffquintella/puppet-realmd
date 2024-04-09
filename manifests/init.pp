@@ -33,7 +33,7 @@ class realmd(
       $packages_final = ['realmd', 'adcli', 'sssd', 'krb5-workstation', 'oddjob', 'oddjob-mkhomedir']
     }
         if $facts['os']['family'] == 'Debian' {
-      $packages_final = ['adcli', 'krb5-user', 'sssd', 'sssd-tools', 'samba-common-bin', 'samba', 'libpam-modules', 'libpam-sss', 'libnss-sss']
+      $packages_final = ['realmd', 'adcli', 'krb5-user', 'sssd', 'sssd-tools', 'samba-common-bin', 'samba', 'libpam-modules', 'libpam-sss', 'libnss-sss']
     }
   } else {
     $packages_final = $packages
