@@ -28,6 +28,18 @@ class realmd(
     String        $keytab_file  = "/etc/krb5.keytab",
 ) {
 
+  if $packages == undef {
+    if $['os']['family'] == 'RedHat'{
+      $packages_final = ['realmd', 'adcli', 'sssd', 'krb5-workstation', 'oddjob', 'oddjob-mkhomedir']
+    }
+        if $['os']['family'] == 'Debian'{
+      $packages_final = ['adcli', 'krb5-user', 'sssd', 'sssd-tools', 'samba-common-bin', 'samba', 'libpam-modules', 'libpam-sss', 'libnss-sss']
+    }
+  }else{
+    $packages_final = $packages
+  }
+
+
   # flatten the array of $ou
   $_ou = $ou.map |$o| {
     "OU=${o}"
@@ -46,7 +58,7 @@ class realmd(
 #    unless  => "!(test -f ${keytab_file}) || (test -f ${keytab_file} && realm list --name-only | grep '^${shell_escape($domain)}\$')",
   }
 
-  -> package { $packages:
+  -> package { $packages_final:
     ensure => present,
   }
 
