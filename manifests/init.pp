@@ -18,17 +18,17 @@
 # @param groups List of groups to add to `simple_allow_groups` (will be flattened for you)
 # @param keytab_file Location of keytabs written by `realm` command
 class realmd(
-    Array[String] $packages,
+    Array[String] $packages = [],
     String        $domain,
     String        $ad_username,
     String        $ad_password,
     Array[String] $ou,
-    Array[String] $services,
+    Array[String] $services     = ['sssd'],
     Array[String] $groups       = [],
     String        $keytab_file  = "/etc/krb5.keytab",
 ) {
 
-  if $packages == undef {
+  if $packages == [] {
     if $facts['os']['family'] == 'RedHat' {
       $packages_final = ['realmd', 'adcli', 'sssd', 'krb5-workstation', 'oddjob', 'oddjob-mkhomedir']
     }
