@@ -29,13 +29,13 @@ class realmd(
 ) {
 
   if $packages == undef {
-    if $['os']['family'] == 'RedHat'{
+    if $facts['os']['family'] == 'RedHat' {
       $packages_final = ['realmd', 'adcli', 'sssd', 'krb5-workstation', 'oddjob', 'oddjob-mkhomedir']
     }
-        if $['os']['family'] == 'Debian'{
+        if $facts['os']['family'] == 'Debian' {
       $packages_final = ['adcli', 'krb5-user', 'sssd', 'sssd-tools', 'samba-common-bin', 'samba', 'libpam-modules', 'libpam-sss', 'libnss-sss']
     }
-  }else{
+  } else {
     $packages_final = $packages
   }
 
