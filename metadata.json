@@ -1,0 +1,27 @@
+{
+  "name": "ffquintella-realmd",
+  "version": "2.0.1",
+  "author": "ffquintella",
+  "summary": "Realmd support for RHEL/Debian",
+  "license": "MIT",
+  "source": "https://github.com/ffquintella/puppet-realmd",
+  "project_page": "https://github.com/ffquintella/puppet-realmd",
+  "issues_url": "https://github.com/ffquintella/puppet-realmd/issues",
+  "dependencies": [
+
+  ],
+  "operatingsystem_support": [
+    "RedHat based Linux",
+    "Debian based Linux"
+  ],
+  "requirements": [
+    {
+      "name": "puppet",
+      "version_requirement": ">= 7.24 < 9.0.0"
+    }
+  ],
+  "project_url": "https://github.com/ffquintella/puppet-realmd",
+  "pdk-version": "3.0.1",
+  "template-url": "pdk-default#3.0.1",
+  "template-ref": "tags/3.0.1-0-gd13288a"
+}

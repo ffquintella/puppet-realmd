@@ -1,0 +1,9 @@
+[Unit]
+Description=Mock SSSD service
+
+[Service]
+Type=simple
+ExecStart=/bin/bash -c "while true ; do echo 'mock sssd running' ; /usr/bin/sleep 1 ; done"
+
+[Install]
+WantedBy=multi-user.target

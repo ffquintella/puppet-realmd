@@ -1,0 +1,9 @@
+realmd::packages:
+    - 'realmd'
+    - 'sssd'
+    - 'oddjob-mkhomedir'
+    - 'samba-common-tools'
+
+realmd::services:
+  - "sssd"
+  - "oddjobd"

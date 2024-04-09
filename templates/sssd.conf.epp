@@ -1,0 +1,38 @@
+<%- | String $domain, Array[String] $groups | -%>
+[sssd]
+config_file_version = 2
+domains = <%= $domain %>
+services = nss, pam
+debug_level = 3
+
+[nss]
+# The following prevents SSSD from searching for the root user/group in
+# all domains (you can add here a comma-separated list of system accounts that
+# are always going to be /etc/passwd users, or that you want to filter out).
+filter_groups = root
+filter_users = root
+reconnection_retries = 3
+debug_level = 3
+
+[pam]
+debug_level = 3
+
+[domain/<%= $domain %>]
+debug_level = 3
+ldap_referrals = false
+enumerate = false
+case_sensitive = false
+ad_domain = <%= $domain %>
+krb5_realm = <%= $domain.upcase() %>
+realmd_tags = manages-system joined-with-samba
+cache_credentials = True
+id_provider = ad
+krb5_store_password_if_offline = True
+default_shell = /bin/bash
+ldap_id_mapping = True
+fallback_homedir = /home/%u
+access_provider = simple
+use_fully_qualified_names = False
+override_homedir=/home/%u
+override_shell=/bin/bash
+simple_allow_groups=<%= $groups.join(",") %>
