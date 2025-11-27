@@ -40,6 +40,7 @@ class realmd(
     $packages_final = $packages
   }
 
+  $_sssd_config = $realmd::sssd_config
 
   # flatten the array of $ou
   $_ou = $ou.map |$o| {
