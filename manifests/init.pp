@@ -22,6 +22,7 @@ class realmd(
     String        $domain,
     String        $ad_username,
     String        $ad_password,
+    Hash          $sssd_config,
     Array[String] $ou,
     Array[String] $services     = ['sssd'],
     Array[String] $groups       = [],
@@ -74,11 +75,19 @@ class realmd(
     creates => $keytab_file,
   }
 
-  -> file { '/etc/sssd/sssd.conf':
+  /*-> file { '/etc/sssd/sssd.conf':
     ensure  => present,
     content => epp('realmd/sssd.conf.epp', {domain => $domain, groups => $groups}),
     owner   => "root",
     group   => "root",
+    mode    => '0600',
+    notify  => Service[$services],
+  }*/
+
+  -> file { '/etc/sssd/sssd.conf':
+    content => template('realmd/sssd.conf.erb'),
+    owner   => 'root',
+    group   => 'root',
     mode    => '0600',
     notify  => Service[$services],
   }
