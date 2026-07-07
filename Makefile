@@ -4,32 +4,39 @@ SHELL := /bin/bash
 FORGE_API := https://forgeapi.puppet.com/v3/releases
 MODULE    := ffquintella-realmd
 
-all:
+.DEFAULT_GOAL := help
+
+help: ## List available targets
+	@echo "Available targets:"; \
+	grep -hE '^[a-zA-Z0-9_.-]+:.*## ' $(MAKEFILE_LIST) | sort | \
+		awk 'BEGIN {FS = ":.*## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
+
+all: ## Run the full pdqtest suite (containers)
 	cd .pdqtest && bundle exec pdqtest all
 
-fast:
+fast: ## Run fast pdqtest checks
 	cd .pdqtest && bundle exec pdqtest fast
 
-acceptance:
+acceptance: ## Run pdqtest acceptance tests
 	cd .pdqtest && bundle exec pdqtest acceptance
 
-shell:
+shell: ## Acceptance tests, keeping the container
 	cd .pdqtest && bundle exec pdqtest --keep-container acceptance
 
-setup:
+setup: ## Set up the pdqtest environment
 	cd .pdqtest && bundle exec pdqtest setup
 
-shellnopuppet:
+shellnopuppet: ## Open a pdqtest shell (no puppet)
 	cd .pdqtest && bundle exec pdqtest shell
 
-logical:
+logical: ## Run pdqtest logical checks
 	cd .pdqtest && bundle exec pdqtest logical
 
-pdqtestbundle:
+pdqtestbundle: ## bundle install for the pdqtest world
 	# Install all gems into _normal world_ bundle so we can use all of em
 	cd .pdqtest && pwd && bundle install
 
-docs:
+docs: ## Generate reference docs (puppet-strings)
 	cd .pdqtest && pwd && bundle exec "cd ..&& puppet strings generate --format markdown"
 
 
@@ -38,20 +45,18 @@ Gemfile.local:
 	ln -s Gemfile.project Gemfile.local
 	$(MAKE) pdkbundle
 
-pdkbundle:
+pdkbundle: ## pdk bundle install
 	pdk bundle install
 
-# Run the unit test suite with regent
-test:
+test: ## Run the unit test suite (regent)
 	regent test --detail
 
-# Build the module package (pkg/$(MODULE)-<version>.tar.gz) with regent
-build:
+build: ## Build the module package (regent)
 	regent build
 
 # Full release: bump patch -> build -> publish to Puppet Forge -> commit -> tag -> push.
 # The Forge API key is prompted for at run time (never stored on disk or in the repo).
-publish:
+publish: ## Release: bump, build, publish to Forge, commit, tag, push
 	@set -euo pipefail; \
 	if [ -n "$$(git status --porcelain)" ]; then \
 		echo "✗ Working tree is not clean. Commit or stash changes before publishing."; \
@@ -91,8 +96,8 @@ publish:
 	git push origin "v$$NEW"; \
 	echo "✓ Release $$NEW committed, tagged and pushed"
 
-clean:
+clean: ## Remove pkg/ and downloaded spec fixtures
 	rm -rf pkg
 	rm -rf spec/fixtures/modules
 
-.PHONY: all fast acceptance shell setup shellnopuppet logical pdqtestbundle docs pdkbundle test build publish clean
+.PHONY: help all fast acceptance shell setup shellnopuppet logical pdqtestbundle docs pdkbundle test build publish clean
