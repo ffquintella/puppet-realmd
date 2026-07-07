@@ -4,7 +4,7 @@
 #   class { "realmd":
 #     domain      => "mydomain",
 #     ad_username => "myuser",
-#     ad_password => "topsecret",
+#     ad_password => Sensitive("topsecret"),
 #     ou          => ['linux', 'servers'],
 #     groups      => ['admins', 'superadmins']
 #   }
@@ -12,7 +12,7 @@
 # @param packages List of packages to install to enable support (from in-module data)
 # @param domain Domain to join
 # @param ad_username AD Username to use for joining
-# @param ad_password AD password to use for joining
+# @param ad_password AD password to use for joining (Sensitive; from eyaml). Never interpolated into the join command line.
 # @param ou Array of OUs to use for joining eg `foo,bar,baz` (OU= will be added for you)
 # @param services List of services to enable for SSD/Realmd
 # @param groups List of groups to add to `simple_allow_groups` (will be flattened for you)
@@ -20,8 +20,8 @@
 class realmd(
     Array[String] $packages = [],
     String        $domain,
-    String        $ad_username,
-    String        $ad_password,
+    String           $ad_username,
+    Sensitive[String] $ad_password,
     Hash          $sssd_config,
     Array[String] $ou,
     Array[String] $services     = ['sssd'],
@@ -52,12 +52,13 @@ class realmd(
   }
 
   # if we are on a different domain, leave it now (deletes /etc/krb5.keytab)
+  # Guard validates the join against AD using the machine credential (adcli testjoin),
+  # not just the local realmd config (realm list). This avoids leaving a healthy domain
+  # during a transient config state and silently dropping the node out of the domain.
   exec { "leave stale domain":
     provider => shell,
     command  => "realm leave",
-    unless   => "!(test -f ${keytab_file}) || (realm list --name-only | grep '^${shell_escape($domain)}\$')",
-
-#    unless  => "!(test -f ${keytab_file}) || (test -f ${keytab_file} && realm list --name-only | grep '^${shell_escape($domain)}\$')",
+    unless   => "!(test -f ${keytab_file}) || (adcli testjoin --domain=${shell_escape($domain)})",
   }
 
   -> package { $packages_final:
@@ -69,11 +70,16 @@ class realmd(
     creates => '/etc/ssh/ssh_host_dsa_key',
   }
 
+  # The password is NOT interpolated into the command line: it would land in
+  # cleartext in the compiled catalog/reports/PuppetDB and be visible in `ps`
+  # (argv of the `sh -c` invocation) during the join. Instead it is unwrapped on
+  # the agent (Deferred) into an environment variable that the command reads from
+  # stdin, so it never appears in any process argv and is redacted from reports.
   -> exec { "join realm":
-    command =>
-      "/bin/echo ${shell_escape($ad_password)} | \
-      realm join ${shell_escape($domain)} -U ${shell_escape($ad_username)} --computer-ou=${shell_escape($_ou)}",
-    creates => $keytab_file,
+    provider    => shell,
+    environment => [Deferred('sprintf', ['REALMD_JOIN_PW=%s', Deferred('unwrap', [$ad_password])])],
+    command     => "printf '%s' \"\$REALMD_JOIN_PW\" | realm join ${shell_escape($domain)} -U ${shell_escape($ad_username)} --computer-ou=${shell_escape($_ou)}",
+    creates     => $keytab_file,
   }
 
   /*-> file { '/etc/sssd/sssd.conf':
