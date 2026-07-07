@@ -77,7 +77,12 @@ class realmd(
   # stdin, so it never appears in any process argv and is redacted from reports.
   -> exec { "join realm":
     provider    => shell,
-    environment => [Deferred('sprintf', ['REALMD_JOIN_PW=%s', Deferred('unwrap', [$ad_password])])],
+    # NOTE: This MUST be a single top-level Deferred, not an array containing one.
+    # Puppet only skips `environment` param validation when the parameter's
+    # top-level value is a DeferredValue (parameter.rb#validate / type.rb#validate).
+    # Wrapping it in an array hides the DeferredValue, so the validator runs
+    # `value =~ /\w+=/` on it and dies with `undefined method '=~' for DeferredValue`.
+    environment => Deferred('sprintf', ['REALMD_JOIN_PW=%s', Deferred('unwrap', [$ad_password])]),
     command     => "printf '%s' \"\$REALMD_JOIN_PW\" | realm join ${shell_escape($domain)} -U ${shell_escape($ad_username)} --computer-ou=${shell_escape($_ou)}",
     creates     => $keytab_file,
   }
